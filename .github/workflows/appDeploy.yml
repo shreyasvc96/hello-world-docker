@@ -9,7 +9,7 @@ on:
 
 env:
   ECR_REPOSITORY: "851725453034.dkr.ecr.us-east-1.amazonaws.com/hello-world-docker"
-  AWS_REGION: "us-east-1"
+  AWS_REGION: us-east-1
   ECS_CLUSTER: "hello-world-cluster"
   ECS_TASK_DEFINITION: "hello-world-docker-2"
   SUBNET_ID: "subnet-0f94068a46a453125, subnet-05ad3927eec943724, subnet-0f6ee2d18ff9cc777, subnet-012c4a4fbcaee62f3, subnet-02f20239bba41ccad, subnet-03e45fe8778ef8ebf"  # Replace with your actual subnet ID
