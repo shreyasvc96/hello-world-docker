@@ -9,7 +9,7 @@ on:
 
 env:
   ECR_REPOSITORY: "851725453034.dkr.ecr.us-east-1.amazonaws.com/hello-world-docker"
-  AWS_REGION: "us-east-1"
+  AWS_REGION: us-east-1
   ECS_CLUSTER: "hello-world-cluster"
   ECS_TASK_DEFINITION: "hello-world-docker-2"
   SUBNET_ID: "subnet-0f94068a46a453125, subnet-05ad3927eec943724, subnet-0f6ee2d18ff9cc777, subnet-012c4a4fbcaee62f3, subnet-02f20239bba41ccad, subnet-03e45fe8778ef8ebf"  # Replace with your actual subnet ID
@@ -28,7 +28,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: $AWS_REGION
+          aws-region: us-east-1
 
       - name: Login to Amazon ECR
         run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY
