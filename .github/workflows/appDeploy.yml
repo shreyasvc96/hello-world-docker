@@ -5,7 +5,7 @@ on:
     paths:
       - "src/**"
     branches:
-      - cicd-ecs
+      - main
 
 env:
   ECR_REPOSITORY: "851725453034.dkr.ecr.us-east-1.amazonaws.com/hello-world-docker"
