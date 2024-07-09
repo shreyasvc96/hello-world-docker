@@ -1,0 +1,56 @@
+name: Build and Deploy App to ECS
+
+on:
+  push:
+    paths:
+      - "src/**"
+    branches:
+      - cicd-ecs
+
+env:
+  ECR_REPOSITORY: "851725453034.dkr.ecr.us-east-1.amazonaws.com/hello-world-docker"
+  AWS_REGION: "us-east-1"
+  ECS_CLUSTER: "hello-world-cluster"
+  ECS_TASK_DEFINITION: "hello-world-docker-2"
+  SUBNET_ID: "subnet-0f94068a46a453125, subnet-05ad3927eec943724, subnet-0f6ee2d18ff9cc777, subnet-012c4a4fbcaee62f3, subnet-02f20239bba41ccad, subnet-03e45fe8778ef8ebf"  # Replace with your actual subnet ID
+  SECURITY_GROUP_ID: "sg-084c483890e9413fb"  # Replace with your actual security group ID
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: $AWS_REGION
+
+      - name: Login to Amazon ECR
+        run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY
+
+      - name: Build and push Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY .
+          docker tag $ECR_REPOSITORY:latest $ECR_REPOSITORY:latest
+          docker push $ECR_REPOSITORY:latest
+
+      - name: Update ECS task definition
+        id: task-def
+        run: |
+          EXISTING_TASK_DEF=$(aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION)
+          NEW_TASK_DEF=$(echo $EXISTING_TASK_DEF | jq --arg IMAGE "$ECR_REPOSITORY:latest" '.taskDefinition.containerDefinitions[0].image = $IMAGE')
+          NEW_TASK_DEF=$(echo $NEW_TASK_DEF | jq 'del(.taskDefinition.taskDefinitionArn, .taskDefinition.revision, .taskDefinition.status, .taskDefinition.requiresAttributes, .taskDefinition.compatibilities, .taskDefinition.requiresCompatibilities)')
+          echo $NEW_TASK_DEF > new-task-def.json
+          REGISTERED_TASK_DEF=$(aws ecs register-task-definition --cli-input-json file://new-task-def.json)
+          TASK_DEFINITION_ARN=$(echo $REGISTERED_TASK_DEF | jq -r '.taskDefinition.taskDefinitionArn')
+          echo "::set-output name=task-definition-arn::$TASK_DEFINITION_ARN"
+
+      - name: Run ECS task
+        run: |
+          TASK_DEFINITION_ARN=$(echo ${{ steps.task-def.outputs['task-definition-arn'] }})
+          aws ecs run-task --cluster $ECS_CLUSTER --task-definition $TASK_DEFINITION_ARN --network-configuration "awsvpcConfiguration={subnets=[$SUBNET_ID],securityGroups=[$SECURITY_GROUP_ID],assignPublicIp=ENABLED}"
