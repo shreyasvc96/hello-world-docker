@@ -10,12 +10,12 @@ public class TestController {
 
     @GetMapping("/")
     public String index(){
-        return "Hello World!!!!! From other side!!!!!";
+        return "Hello World!!!!! TESTING THE PIPELINE";
     }
 
     @GetMapping("/time")
     public String getTime(){
         Date date = new Date();
-        return date.toString();
+        return date.toString() + " HELLO";
     }
 }
