@@ -10,7 +10,7 @@ public class TestController {
 
     @GetMapping("/")
     public String index(){
-        return "Hello World!!!!! TESTING THE PIPELINE";
+        return "Hello World!!!!!July 16th";
     }
 
     @GetMapping("/time")
